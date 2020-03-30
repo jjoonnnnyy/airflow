@@ -16,6 +16,7 @@
 # specific language governing permissions and limitations
 # under the License.
 from datadog import api
+from datetime import datetime
 
 from airflow.exceptions import AirflowException
 from airflow.providers.datadog.hooks.datadog import DatadogHook
@@ -64,9 +65,12 @@ class DatadogSensor(BaseSensorOperator):
         # task instance runs in its own process anyway.
         DatadogHook(datadog_conn_id=self.datadog_conn_id)
 
+        start_time = datetime.now().timestamp() - self.from_seconds_ago
+        end_time = datetime.now().timestamp() + self.up_to_seconds_from_now
+
         response = api.Event.query(
-            start=self.from_seconds_ago,
-            end=self.up_to_seconds_from_now,
+            start=start_time,
+            end=end_time,
             priority=self.priority,
             sources=self.sources,
             tags=self.tags)
